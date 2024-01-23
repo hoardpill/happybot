@@ -55,47 +55,68 @@ void movePiece(string move) {
     fromRow = move[1] - '1';
     toCol = move[2] - 'a';
     toRow = move[3] - '1';
+	int rowDiff = (toRow - fromRow);
+    int colDiff = (toCol - fromCol);
+    bool isValidKnightMove(int fromRow, int fromCol, int toRow, int toCol){
+        if ((rowDiff == 2 || rowDiff == -2) && (colDiff == 1 || colDiff == -1)){
+            return true;
+		}
+        else if((rowDiff == 1 || rowDiff == -1) && (colDiff == 2 || colDiff == -2)){
+            return true;
+		}
+        return false;
+
+	}
 	bool isValidKingMove(int fromRow, int fromCol, int toRow, int toCol) {
-		int rowDiff = (toRow - fromRow);
-		int colDiff = (toCol - fromCol);
         // Check if the move is one square in any direction
 		if ((rowDiff <= 1) && (colDiff <= 1)) {
 			return true;
 		}
 		return false;
 	}
-        bool isCapture(int fromRow, int fromCol, int toRow, int toCol){
-        
-			capturingColor = chessBoard[fromRow][fromCol] % 2;
-			capturedColor = chessBoard[toRow][toCol] % 2;
-            if((capturingColor == capturedColor) && (chessBoard[toRow][toCol] != 0)){
-                return false;
+	bool isCapture(int fromRow, int fromCol, int toRow, int toCol){
 
-			}
-            else{
-                return true;
-			}
-        }
+		capturingColor = chessBoard[fromRow][fromCol] % 2;
+		capturedColor = chessBoard[toRow][toCol] % 2;
+		if((capturingColor == capturedColor) && (chessBoard[toRow][toCol] != 0)){
+			return false;
+
+		}
+		else{
+			return true;
+		}
+	}
     // Perform the move
     if (isCapture(fromRow, fromCol, toRow, toCol)){
-    if (chessBoard[fromRow][fromCol] == 11 || chessBoard[fromRow][fromCol] == 12) {
-        // Check if the move is valid for the king
-        if (isValidKingMove(fromRow, fromCol, toRow, toCol)) {
-            // Perform the move
-            chessBoard[toRow][toCol] = chessBoard[fromRow][fromCol];
-            chessBoard[fromRow][fromCol] = 0;
-            
-            displayBoard();// Display the updated board
-			writeln(generateFEN());// Generate and output FEN string
-        }
-    } else if(chessBoard[fromRow][fromCol] != 11 || chessBoard[fromRow][fromCol] != 12){
+		if (chessBoard[fromRow][fromCol] == 11 || chessBoard[fromRow][fromCol] == 12) {
+			// Check if the move is valid for the king
+			if (isValidKingMove(fromRow, fromCol, toRow, toCol)) {
+				// Perform the move
+				chessBoard[toRow][toCol] = chessBoard[fromRow][fromCol];
+				chessBoard[fromRow][fromCol] = 0;
+
+				displayBoard();// Display the updated board
+				writeln(generateFEN());// Generate and output FEN string
+			}
+        } else if (chessBoard[fromRow][fromCol] == 3 || chessBoard[fromRow][fromCol] == 4) {
+			// Check if the move is valid for the king
+			if (isValidKnightMove(fromRow, fromCol, toRow, toCol)) {
+				// Perform the move
+				chessBoard[toRow][toCol] = chessBoard[fromRow][fromCol];
+				chessBoard[fromRow][fromCol] = 0;
+
+				displayBoard();// Display the updated board
+				writeln(generateFEN());// Generate and output FEN string
+			}
+		} else if(chessBoard[fromRow][fromCol] != 11 || chessBoard[fromRow][fromCol] != 12){
 	        chessBoard[toRow][toCol] = chessBoard[fromRow][fromCol];
 	        chessBoard[fromRow][fromCol] = 0;
             displayBoard();// Display the updated board
 			writeln(generateFEN());// Generate and output FEN string
-    } else {
-        // Do nothing
-    } }   
+		} else {
+			// Do nothing
+		} 
+	}   
     string rowString = to!string(toRow);
 	string colString = to!string(toCol);
 	writeln(rowString ~ colString);
@@ -169,7 +190,7 @@ void updateBoardFromFEN(string fenString) {
             chessBoard[row][col++] = cast(ubyte)pieceVal; 
         }
     }
-    
+
 } //update the board
 ubyte getPiece(ubyte[][] board, int row, int col) {
     return board[row][col];
@@ -177,7 +198,7 @@ ubyte getPiece(ubyte[][] board, int row, int col) {
 
 string userInput;
 void gameLoop() {
-    
+
     displayBoard(); // Display the initial board
     writeln("Initial FEN: ", generateFEN());
     // Main game loop
@@ -186,14 +207,14 @@ void gameLoop() {
         userInput = readln(); // Get user input
 		turn = !turn;// Toggle turn
         movePiece(userInput);// Perform the move
-        
+
     }
-    
+
 }
 
 void main() {
-    
+
     gameLoop();  
     writeln("\n");
-    
+
 }
