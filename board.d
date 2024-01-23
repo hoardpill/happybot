@@ -64,11 +64,11 @@ void movePiece(string move) {
 		}
 		return false;
 	}
-        bool isCapture(char piece, int fromRow, int fromCol, int toRow, int toCol, int captureColor1, int captureColor2){
+        bool isCapture(int fromRow, int fromCol, int toRow, int toCol){
         
-			capturingColor = piece(chessBoard[fromRow][fromCol]) % 2;
-			capturedColor = piece(chessBoard[toRow][toCol]) % 2;
-            if(captureColor2 == captureColor1){
+			capturingColor = chessBoard[fromRow][fromCol] % 2;
+			capturedColor = chessBoard[toRow][toCol] % 2;
+            if(capturingColor == capturedColor){
                 return false;
 
 			}
@@ -77,7 +77,7 @@ void movePiece(string move) {
 			}
         }
     // Perform the move
-    
+    if (isCapture(fromRow, fromCol, toRow, toCol)){
     if (chessBoard[fromRow][fromCol] == 11 || chessBoard[fromRow][fromCol] == 12) {
         // Check if the move is valid for the king
         if (isValidKingMove(fromRow, fromCol, toRow, toCol)) {
@@ -95,7 +95,7 @@ void movePiece(string move) {
 			writeln(generateFEN());// Generate and output FEN string
     } else {
         // Do nothing
-    }    
+    } }   
     string rowString = to!string(toRow);
 	string colString = to!string(toCol);
 	writeln(rowString ~ colString);
