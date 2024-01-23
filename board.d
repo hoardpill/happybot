@@ -6,6 +6,24 @@ import std.conv;
 
 import piecemovement;
 
+
+int fromCol;
+int fromRow;
+int toCol;
+int toRow;
+bool captureLegal;
+int capturingColor = 0;
+int capturedColor = 1;
+string fenString = "";
+bool turn = false;
+int row;
+int col;
+int pieceVal;
+int ply = -1;
+int turnInt = 1;
+
+
+
 ubyte[8][8] chessBoard = [
     [ 7,  3,  5,  9, 11,  5,  3,  7], // R N B Q K B N R
     [ 1,  1,  1,  1,  1,  1,  1,  1], // P P P P P P P P
@@ -41,105 +59,124 @@ void displayBoard() {
         }
         writeln();
     }
+    turns();
 }
-int fromCol;
-int fromRow;
-int toCol;
-int toRow;
-bool captureLegal;
-int capturingColor = 0;
-int capturedColor = 1;
+
 // Translate algebraic notation to array indices
 void movePiece(string move) {
     fromCol = move[0] - 'a';
     fromRow = move[1] - '1';
     toCol = move[2] - 'a';
     toRow = move[3] - '1';
-	int rowDiff = (toRow - fromRow);
+    int rowDiff = (toRow - fromRow);
     int colDiff = (toCol - fromCol);
     bool isValidKnightMove(int fromRow, int fromCol, int toRow, int toCol){
+        // Check if move is in L shape in any direction
         if ((rowDiff == 2 || rowDiff == -2) && (colDiff == 1 || colDiff == -1)){
             return true;
-		}
+        }
         else if((rowDiff == 1 || rowDiff == -1) && (colDiff == 2 || colDiff == -2)){
+            return true;
+        }
+        return false;
+    }
+    bool isValidKingMove(int fromRow, int fromCol, int toRow, int toCol) {
+        // Check if the move is one square in any direction
+        if ((rowDiff <= 1) && (colDiff <= 1)) {
+            return true;
+        }
+        return false;
+    }
+    bool isValidBishopMove(int fromRow, int fromCol, int toRow, int toCol){
+        if (colDiff == rowDiff || -colDiff == rowDiff || -colDiff == -rowDiff || colDiff == -rowDiff){
             return true;
 		}
         return false;
 	}
-
-	bool isValidKingMove(int fromRow, int fromCol, int toRow, int toCol) {
-        // Check if the move is one square in any direction
-		if ((rowDiff <= 1) && (colDiff <= 1)) {
-			return true;
+	bool isValidRookMove(int fromRow, int fromCol, int toRow, int toCol){
+        if (rowDiff == 0 || colDiff == 0){
+            return true;
 		}
-		return false;
+        return false;
+	}   
+    bool isValidQueenMove(int fromRow, int fromCol, int toRow, int toCol){
+        if (isValidRookMove(fromRow, fromCol, toRow, toCol) || (isValidBishopMove(fromRow, fromCol, toRow, toCol))){
+            return true;
+		}
+        return false;
 	}
-	bool isCapture(int fromRow, int fromCol, int toRow, int toCol){
-
-		capturingColor = chessBoard[fromRow][fromCol] % 2;
-		capturedColor = chessBoard[toRow][toCol] % 2;
-		if((capturingColor == capturedColor) && (chessBoard[toRow][toCol] != 0)){
-			return false;
-		}
-		else{
-			return true;
-		}
-	}
+    bool isCapture(int fromRow, int fromCol, int toRow, int toCol){
+        // Check white captures white or black captures black
+        capturingColor = chessBoard[fromRow][fromCol] % 2; // Gets attacking piece color
+        capturedColor = chessBoard[toRow][toCol] % 2; // Gets defending piece color
+        if((capturingColor == capturedColor) && (chessBoard[toRow][toCol] != 0)){
+            // Note: ensures that piece is not just moving to an empty square
+            return false;
+        }
+        else {
+            return true;
+        }
+    }
     // Perform the move
     if (isCapture(fromRow, fromCol, toRow, toCol)){
-		if (chessBoard[fromRow][fromCol] == 11 || chessBoard[fromRow][fromCol] == 12) {
-			// Check if the move is valid for the king
-			if (isValidKingMove(fromRow, fromCol, toRow, toCol)) {
-				// Perform the move
-				chessBoard[toRow][toCol] = chessBoard[fromRow][fromCol];
-				chessBoard[fromRow][fromCol] = 0;
-
-				displayBoard();// Display the updated board
-				
-			}
+        if (chessBoard[fromRow][fromCol] == 11 || chessBoard[fromRow][fromCol] == 12) {
+            // Check if the move is valid for the king
+            if (isValidKingMove(fromRow, fromCol, toRow, toCol)) {
+                // Perform the move
+                chessBoard[toRow][toCol] = chessBoard[fromRow][fromCol];
+                chessBoard[fromRow][fromCol] = 0;
+                displayBoard();// Display the updated board				
+            }
         } else if (chessBoard[fromRow][fromCol] == 3 || chessBoard[fromRow][fromCol] == 4) {
-			// Check if the move is valid for the king
-			if (isValidKnightMove(fromRow, fromCol, toRow, toCol)) {
-				// Perform the move
-				chessBoard[toRow][toCol] = chessBoard[fromRow][fromCol];
-				chessBoard[fromRow][fromCol] = 0;
-
-				displayBoard();// Display the updated board
-				
+            // Check if the move is valid for the king
+            if (isValidKnightMove(fromRow, fromCol, toRow, toCol)) {
+                // Perform the move
+                chessBoard[toRow][toCol] = chessBoard[fromRow][fromCol];
+                chessBoard[fromRow][fromCol] = 0;
+                displayBoard();// Display the updated 
+            }
+        } else if (chessBoard[fromRow][fromCol] == 5 || chessBoard[fromRow][fromCol] == 6) {
+            // Check if the move is valid for the Bishop
+            if (isValidBishopMove(fromRow, fromCol, toRow, toCol)) {
+                // Perform the move
+                chessBoard[toRow][toCol] = chessBoard[fromRow][fromCol];
+                chessBoard[fromRow][fromCol] = 0;
+                displayBoard();// Display the updated board
+            }
+        } else if (chessBoard[fromRow][fromCol] == 7 || chessBoard[fromRow][fromCol] == 8){
+            if (isValidRookMove(fromRow, fromCol, toRow, toCol)){
+                // Perform the move
+                chessBoard[toRow][toCol] = chessBoard[fromRow][fromCol];
+                chessBoard[fromRow][fromCol] = 0;
+                displayBoard();// Display the updated board
 			}
-		} else if(chessBoard[fromRow][fromCol] != 11 || chessBoard[fromRow][fromCol] != 12){
-	        chessBoard[toRow][toCol] = chessBoard[fromRow][fromCol];
-	        chessBoard[fromRow][fromCol] = 0;
-            displayBoard();// Display the updated board
-			
-		} else {
-			// Do nothing
-		} 
-	}   
+		} else if(chessBoard[fromRow][fromCol] == 9 || chessBoard[fromRow][fromCol] == 10){
+            if (isValidQueenMove(fromRow, fromCol, toRow, toCol)){
+                chessBoard[toRow][toCol] = chessBoard[fromRow][fromCol];
+                chessBoard[fromRow][fromCol] = 0;
+                displayBoard();// Display the updated board
+            }
+        } else {
+            chessBoard[toRow][toCol] = chessBoard[fromRow][fromCol];
+            chessBoard[fromRow][fromCol] = 0;
+            displayBoard();// Display the updated board   
+        }
+    }   
     string rowString = to!string(toRow);
-	string colString = to!string(toCol);
-	writeln(rowString ~ colString);
-
-
+    string colString = to!string(toCol);
+    writeln(rowString ~ colString);
 }
-string fenString = "";
-
-bool turn = false;
-int row;
-int col;
-int pieceVal;
-int ply = -1;
-int turnInt = 1;
 
 string userInput;
 void turns(){
     ply = ++ply;
-	string plyString = to!string(ply);
-	writeln("\nPly:      " ~ plyString);
-	turnInt = (ply / 2) + 1;
-	string turnString = to!string(turnInt);
-	writeln("\nTurn:     " ~ turnString);
+    string plyString = to!string(ply);
+    writeln("\nPly:      " ~ plyString);
+    turnInt = (ply / 2) + 1;
+    string turnString = to!string(turnInt);
+    writeln("\nTurn:     " ~ turnString);
 }
+
 void writeFen(){
     // Flip the board
     foreach_reverse (row; chessBoard) {
@@ -150,7 +187,7 @@ void writeFen(){
                     fenString ~= cast(char)(emptyCount + '0');
                     emptyCount = 0;
                 } 
-				// Add pieces to FEN
+                // Add pieces to FEN
                 int index = cast(ubyte)(piece - 1);
                 char pieceName = ['P', 'p', 'N', 'n', 'B', 'b',
                                   'R', 'r', 'Q', 'q', 'K', 'k'][index];
@@ -159,7 +196,7 @@ void writeFen(){
                 emptyCount++;
             }
         }
-		// Fill empty squares in FEN
+        // Fill empty squares in FEN
         if (emptyCount > 0) {
             fenString ~= cast(char)(emptyCount + '0');
         }
@@ -168,27 +205,21 @@ void writeFen(){
     fenString = fenString[0 .. $-1]; // Remove the last break
     writeln(fenString);
     fenString = ""; // Reset the string
-    
 }
+
 void gameLoop() {
     displayBoard(); // Display the initial board
-    turns(); // Display turns
     writeFen(); // Initial FEN
     // Main game loop
     while (true) {
         write("Enter your move: ");
         userInput = readln(); // Get user input
-		turn = !turn;// Toggle turn
         movePiece(userInput);// Perform the move
-        turns(); // Display turns again
         writeFen(); // Display FEN string
     }
-    
-
-
-}
+ }
 
 void main() {
     gameLoop();  
-    writeln("\n");   
+    writeln("\n");
 }
