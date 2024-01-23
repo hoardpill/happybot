@@ -15,7 +15,7 @@ ubyte[8][8] chessBoard = [
     [ 0,  0,  0,  0,  0,  0,  0,  0], // . . . . . . . .
     [ 2,  2,  2,  2,  2,  2,  2,  2], // P P P P P P P P
     [ 8,  4,  6, 10, 12,  6,  4,  8]  // R N B Q K B N R
-];
+]; // Evens black, Odds white
 
 // Display the board
 void displayBoard() {
@@ -140,10 +140,40 @@ void turns(){
 	string turnString = to!string(turnInt);
 	writeln("\nTurn:     " ~ turnString);
 }
-void gameLoop() {
+void writeFen(){
+    // Flip the board
+    foreach_reverse (row; chessBoard) {
+        int emptyCount = 0;
+        foreach (piece; row) {
+            if (piece != 0) {
+                if (emptyCount > 0) {
+                    fenString ~= cast(char)(emptyCount + '0');
+                    emptyCount = 0;
+                } 
+				// Add pieces to FEN
+                int index = cast(ubyte)(piece - 1);
+                char pieceName = ['P', 'p', 'N', 'n', 'B', 'b',
+                                  'R', 'r', 'Q', 'q', 'K', 'k'][index];
+                fenString ~= pieceName;
+            } else {
+                emptyCount++;
+            }
+        }
+		// Fill empty squares in FEN
+        if (emptyCount > 0) {
+            fenString ~= cast(char)(emptyCount + '0');
+        }
+        fenString ~= "/"; // Add linebreaks
+    }
+    fenString = fenString[0 .. $-1]; // Remove the last break
+    writeln(fenString);
+    fenString = ""; // Reset the string
     
+}
+void gameLoop() {
     displayBoard(); // Display the initial board
     turns(); // Display turns
+    writeFen(); // Initial FEN
     // Main game loop
     while (true) {
         write("Enter your move: ");
@@ -151,13 +181,14 @@ void gameLoop() {
 		turn = !turn;// Toggle turn
         movePiece(userInput);// Perform the move
         turns(); // Display turns again
+        writeFen(); // Display FEN string
     }
+    
+
 
 }
 
 void main() {
-    
     gameLoop();  
-    writeln("\n");
-    
+    writeln("\n");   
 }
