@@ -46,6 +46,9 @@ int fromCol;
 int fromRow;
 int toCol;
 int toRow;
+bool captureLegal;
+int capturingColor = 0;
+int capturedColor = 1;
 // Translate algebraic notation to array indices
 void movePiece(string move) {
     fromCol = move[0] - 'a';
@@ -61,11 +64,10 @@ void movePiece(string move) {
 		}
 		return false;
 	}
-    if(chessBoard[toRow][toCol] != 0) {
-        bool captureLegal(int fromRow, int fromCol, int toRow, int toCol){
+        bool isCapture(char piece, int fromRow, int fromCol, int toRow, int toCol, int captureColor1, int captureColor2){
         
-			int captureColor1 = (chessBoard[fromRow][fromCol]) % 2;
-			int captureColor2 = (chessBoard[toRow][toCol]) % 2;
+			capturingColor = piece(chessBoard[fromRow][fromCol]) % 2;
+			capturedColor = piece(chessBoard[toRow][toCol]) % 2;
             if(captureColor2 == captureColor1){
                 return false;
 
@@ -74,8 +76,6 @@ void movePiece(string move) {
                 return true;
 			}
         }
-
-	}
     // Perform the move
     
     if (chessBoard[fromRow][fromCol] == 11 || chessBoard[fromRow][fromCol] == 12) {
@@ -99,7 +99,8 @@ void movePiece(string move) {
     string rowString = to!string(toRow);
 	string colString = to!string(toCol);
 	writeln(rowString ~ colString);
-    writeln(captureLegal);
+
+
 }
 string fenString = "";
 
