@@ -65,8 +65,8 @@ void movePiece(string move) {
             return true;
 		}
         return false;
-
 	}
+
 	bool isValidKingMove(int fromRow, int fromCol, int toRow, int toCol) {
         // Check if the move is one square in any direction
 		if ((rowDiff <= 1) && (colDiff <= 1)) {
@@ -80,7 +80,6 @@ void movePiece(string move) {
 		capturedColor = chessBoard[toRow][toCol] % 2;
 		if((capturingColor == capturedColor) && (chessBoard[toRow][toCol] != 0)){
 			return false;
-
 		}
 		else{
 			return true;
@@ -96,7 +95,7 @@ void movePiece(string move) {
 				chessBoard[fromRow][fromCol] = 0;
 
 				displayBoard();// Display the updated board
-				writeln(generateFEN());// Generate and output FEN string
+				
 			}
         } else if (chessBoard[fromRow][fromCol] == 3 || chessBoard[fromRow][fromCol] == 4) {
 			// Check if the move is valid for the king
@@ -106,13 +105,13 @@ void movePiece(string move) {
 				chessBoard[fromRow][fromCol] = 0;
 
 				displayBoard();// Display the updated board
-				writeln(generateFEN());// Generate and output FEN string
+				
 			}
 		} else if(chessBoard[fromRow][fromCol] != 11 || chessBoard[fromRow][fromCol] != 12){
 	        chessBoard[toRow][toCol] = chessBoard[fromRow][fromCol];
 	        chessBoard[fromRow][fromCol] = 0;
             displayBoard();// Display the updated board
-			writeln(generateFEN());// Generate and output FEN string
+			
 		} else {
 			// Do nothing
 		} 
@@ -126,95 +125,39 @@ void movePiece(string move) {
 string fenString = "";
 
 bool turn = false;
-// Function to generate FEN string from the chess board
-string generateFEN() {
-    fenString = "";
-
-    foreach_reverse (row; chessBoard) {
-        int emptyCount = 0;
-        foreach (piece; row) {
-            if (piece != 0) {
-                if (emptyCount > 0) {
-                    fenString ~= cast(char)(emptyCount + '0');
-                    emptyCount = 0;
-                }
-                char pieceName = ['P', 'N', 'B', 'R', 'Q', 'K', 'p', 'n', 'b', 'r', 'q', 'k'][((piece + 1) / 2) - 1];
-                fenString ~= pieceName;
-            } else {
-                emptyCount++;
-            }
-        }
-        if (emptyCount > 0) {
-            fenString ~= cast(char)(emptyCount + '0');
-        }
-        fenString ~= "/";
-    }
-
-    fenString = fenString[0 .. $-1]; // Remove the trailing '/'
-
-    // FEN turns
-    if (turn == true) {
-        fenString = fenString ~ " b ";
-    } else {
-        fenString = fenString ~ " w ";
-    }
-
-    ply = ++ply;
-    string plyString = to!string(ply);
-    fenString = fenString ~ "\nPly:      " ~ plyString;
-    turnInt = (ply / 2) + 1;
-    string turnString = to!string(turnInt);
-    fenString = fenString ~ "\nTurn:     " ~ turnString;
-
-    return fenString;
-}
-
-
 int row;
 int col;
 int pieceVal;
 int ply = -1;
 int turnInt = 1;
-// Function to update the chess board from FEN string
-void updateBoardFromFEN(string fenString) {
-    row = 0;
-    col = 0;
-    foreach (char c; fenString) {
-        if (c >= '1' && c <= '8') {
-            col += c - '0';
-        } else if (c == '/') {
-            row++;
-            col = 0;
-        } else {
-            pieceVal = (c >= 'a' && c <= 'h') ? c - 'a' + 1 : c - 'A' + 7;
-            chessBoard[row][col++] = cast(ubyte)pieceVal; 
-        }
-    }
-
-} //update the board
-ubyte getPiece(ubyte[][] board, int row, int col) {
-    return board[row][col];
-}
 
 string userInput;
+void turns(){
+    ply = ++ply;
+	string plyString = to!string(ply);
+	writeln("\nPly:      " ~ plyString);
+	turnInt = (ply / 2) + 1;
+	string turnString = to!string(turnInt);
+	writeln("\nTurn:     " ~ turnString);
+}
 void gameLoop() {
-
+    
     displayBoard(); // Display the initial board
-    writeln("Initial FEN: ", generateFEN());
+    turns(); // Display turns
     // Main game loop
     while (true) {
         write("Enter your move: ");
         userInput = readln(); // Get user input
 		turn = !turn;// Toggle turn
         movePiece(userInput);// Perform the move
-
+        turns(); // Display turns again
     }
 
 }
 
 void main() {
-
+    
     gameLoop();  
     writeln("\n");
-
+    
 }
