@@ -68,7 +68,7 @@ void movePiece(string move) {
         
 			capturingColor = chessBoard[fromRow][fromCol] % 2;
 			capturedColor = chessBoard[toRow][toCol] % 2;
-            if(capturingColor == capturedColor){
+            if((capturingColor == capturedColor) && (chessBoard[toRow][toCol] != 0)){
                 return false;
 
 			}
