@@ -22,24 +22,32 @@ int pieceVal;
 int ply = -1;
 int turnInt = 1;
 
+int abs(int value) {
+    if (value >= 0) {
+        return value;
+    } else {
+        return -value;
+    }
+}
 
 
-ubyte[8][8] chessBoard = [
-    [ 7,  3,  5,  9, 11,  5,  3,  7], // R N B Q K B N R
-    [ 1,  1,  1,  1,  1,  1,  1,  1], // P P P P P P P P
+ubyte[8][8] chessBoard = [            // a             h
+    [ 7,  3,  5,  9, 11,  5,  3,  7], // R N B Q K B N R 1
+    [ 1,  1,  1,  1,  1,  1,  1,  1], // P P P P P P P P  White's pieces
     [ 0,  0,  0,  0,  0,  0,  0,  0], // . . . . . . . .
     [ 0,  0,  0,  0,  0,  0,  0,  0], // . . . . . . . .
     [ 0,  0,  0,  0,  0,  0,  0,  0], // . . . . . . . .
     [ 0,  0,  0,  0,  0,  0,  0,  0], // . . . . . . . .
-    [ 2,  2,  2,  2,  2,  2,  2,  2], // P P P P P P P P
-    [ 8,  4,  6, 10, 12,  6,  4,  8]  // R N B Q K B N R
-]; // Evens black, Odds white
+    [ 2,  2,  2,  2,  2,  2,  2,  2], // P P P P P P P P  Black's pieces
+    [ 8,  4,  6, 10, 12,  6,  4,  8]  // R N B Q K B N R 8
+]; 
 
 // Display the board
 void displayBoard() {
     foreach_reverse(i; 0 .. 8) { //flip board
         foreach(j; 0 .. 8) {
             char piece;
+
             switch (chessBoard[i][j]) {
                 case 1: piece = 'P'; break; // White Pawn
                 case 3: piece = 'N'; break; // White Knight
@@ -88,12 +96,14 @@ void movePiece(string move) {
         return false;
     }
     bool isValidBishopMove(int fromRow, int fromCol, int toRow, int toCol){
+        // Check if the move is diagonal
         if (colDiff == rowDiff || -colDiff == rowDiff || -colDiff == -rowDiff || colDiff == -rowDiff){
             return true;
 		}
         return false;
 	}
 	bool isValidRookMove(int fromRow, int fromCol, int toRow, int toCol){
+        // Check if the move is straight
         if (rowDiff == 0 || colDiff == 0){
             return true;
 		}
@@ -105,6 +115,58 @@ void movePiece(string move) {
 		}
         return false;
 	}
+    bool isValidPawnMove(int fromRow, int fromCol, int toRow, int toCol){
+        
+        if (chessBoard[fromRow][fromCol] == 1) { // White pawn
+			if (fromRow == 1) { // Check if on the starting row
+				if (rowDiff == 1 || rowDiff == 2) {
+					if (colDiff == 0 && chessBoard[toRow][toCol] == 0) { // Check if destination of move is empty
+						return true;
+					} else if (rowDiff == 2 && chessBoard[toRow - 1][toCol] == 0) { // Check two squares
+						return true;
+					}
+				}
+			} else {
+				if (rowDiff == 1 && colDiff == 0 && chessBoard[toRow][toCol] == 0) { // Check if one square ahead is empty
+					return true;
+				}
+			}
+		} else if (chessBoard[fromRow][fromCol] == 2) { // Black pawn
+			if (fromRow == 6) { // Check if on the starting row
+				if (rowDiff == -1 || rowDiff == -2) {
+					if (colDiff == 0 && chessBoard[toRow][toCol] == 0) { // Check if destination of move is empty
+						return true;
+					} else if (rowDiff == -2 && chessBoard[toRow + 1][toCol] == 0) { // Check two squares
+						return true;
+					}
+				}
+			} else {
+				if (rowDiff == -1 && colDiff == 0 && chessBoard[toRow][toCol] == 0) { // Check if one square ahead is empty
+					return true;
+				}
+			}
+		}
+        if (abs(colDiff) == 1 && abs(rowDiff) == 1 && chessBoard[toRow][toCol] != 0) {
+			if (chessBoard[fromRow][fromCol] == 1 && rowDiff == 1) { // pawn capture for white EXPERIMENTAL 
+				return true;
+			} else if (chessBoard[fromRow][fromCol] == 2 && rowDiff == -1) { // pawn for black capture
+				return true;
+			}
+		}
+        return false;
+	}
+    bool isWhiteTurn(){
+        if (ply % 2 == 0){
+            return true;
+		}
+        return false;
+	}
+    bool turnAffirm(int fromRow, int fromCol, int toRow, int toCol){
+        if (isWhiteTurn == chessBoard[fromRow][fromCol] % 2){
+            return true;
+		}
+        return false;
+    }
     bool isCapture(int fromRow, int fromCol, int toRow, int toCol){
         // Check white captures white or black captures black
         capturingColor = chessBoard[fromRow][fromCol] % 2; // Gets attacking piece color
@@ -118,7 +180,7 @@ void movePiece(string move) {
         }
     }
     // Perform the move
-    if (isCapture(fromRow, fromCol, toRow, toCol)){
+    if (isCapture(fromRow, fromCol, toRow, toCol) && turnAffirm(fromRow, fromCol, toRow, toCol)){
         if (chessBoard[fromRow][fromCol] == 11 || chessBoard[fromRow][fromCol] == 12) {
             // Check if the move is valid for the king
             if (isValidKingMove(fromRow, fromCol, toRow, toCol)) {
@@ -136,7 +198,7 @@ void movePiece(string move) {
                 displayBoard();// Display the updated 
             }
         } else if (chessBoard[fromRow][fromCol] == 5 || chessBoard[fromRow][fromCol] == 6) {
-            // Check if the move is valid for the Bishop
+            // Check if the move is valid for the bishop
             if (isValidBishopMove(fromRow, fromCol, toRow, toCol)) {
                 // Perform the move
                 chessBoard[toRow][toCol] = chessBoard[fromRow][fromCol];
@@ -144,6 +206,7 @@ void movePiece(string move) {
                 displayBoard();// Display the updated board
             }
         } else if (chessBoard[fromRow][fromCol] == 7 || chessBoard[fromRow][fromCol] == 8){
+            // Check if the move is valid for the rook
             if (isValidRookMove(fromRow, fromCol, toRow, toCol)){
                 // Perform the move
                 chessBoard[toRow][toCol] = chessBoard[fromRow][fromCol];
@@ -151,20 +214,25 @@ void movePiece(string move) {
                 displayBoard();// Display the updated board
 			}
 		} else if(chessBoard[fromRow][fromCol] == 9 || chessBoard[fromRow][fromCol] == 10){
+            // Check if the move is valid for the queen
             if (isValidQueenMove(fromRow, fromCol, toRow, toCol)){
                 chessBoard[toRow][toCol] = chessBoard[fromRow][fromCol];
                 chessBoard[fromRow][fromCol] = 0;
                 displayBoard();// Display the updated board
             }
-        } else {
-            chessBoard[toRow][toCol] = chessBoard[fromRow][fromCol];
-            chessBoard[fromRow][fromCol] = 0;
-            displayBoard();// Display the updated board   
+        } else if (chessBoard[fromRow][fromCol] == 1 || chessBoard[fromRow][fromCol] == 2){
+            // Check if the move is valid for the pawn
+            if (isValidPawnMove(fromRow, fromCol, toRow, toCol)){
+                chessBoard[toRow][toCol] = chessBoard[fromRow][fromCol];
+			    chessBoard[fromRow][fromCol] = 0;
+			    displayBoard();// Display the updated board
+		    }
+		} else {
+             // do nothing
         }
     }   
     string rowString = to!string(toRow);
     string colString = to!string(toCol);
-    writeln(rowString ~ colString);
 }
 
 string userInput;
@@ -214,8 +282,12 @@ void gameLoop() {
     while (true) {
         write("Enter your move: ");
         userInput = readln(); // Get user input
+        if(userInput == ""){
+            break;
+		}
         movePiece(userInput);// Perform the move
         writeFen(); // Display FEN string
+        
     }
  }
 
